@@ -9,12 +9,10 @@ type Forecast struct {
 	TimeStamp string   `xml:"timestamp"`
 }
 
-// SnowForcast is a individual snow forcast for a given place, state, county at a time
-type SnowForcast struct {
+// SnowForecast is a individual snow forcast for a given place, state, county at a time
+type SnowForecast struct {
+	ID                     string
 	TimeStamp              string
-	Place                  string
-	State                  string
-	County                 string
 	LowEndSnowfall         float64
 	ExpectedSnowfall       float64
 	HighEndSnowfall        float64
@@ -28,11 +26,21 @@ type SnowForcast struct {
 	ChanceMoreThanEighteen float64
 }
 
-// SnowPlaces is a list of places that get snow
-type SnowPlaces []SnowForcast
+// SnowPlace is a list of places that get snow
+type SnowPlace struct {
+	ID           string
+	Place        string
+	State        string
+	County       string
+	SnowForecast *SnowForecast
+}
 
-// // SnowCity is a easy lookup for snow data
-// type SnowCity map[string]Snow
+// SnowPlaces is a list of snowplace objects which all have a forcast
+type SnowPlaces []*SnowPlace
 
-// // SnowPlaces is a easy lookup for snow data
-// type SnowPlaces map[string]SnowCity
+// Toast has all the ingredients
+type Toast struct {
+	Slices int
+	Status string
+	Alert  string
+}
