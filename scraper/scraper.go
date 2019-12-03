@@ -22,7 +22,6 @@ var timeStamp string
 func doEvery(d time.Duration, dataChan chan models.SnowPlaces, f func() (*models.Forecast, error)) error {
 	for range time.Tick(d) {
 		forecast, err := f()
-		//fmt.Printf("%+v", *forecast)
 		if err != nil {
 			return err
 		}

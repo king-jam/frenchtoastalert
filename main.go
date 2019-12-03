@@ -14,7 +14,7 @@ import (
 const SCRAPEINTERVAL time.Duration = 10
 
 func main() {
-	fmt.Printf("scraping every %d", SCRAPEINTERVAL)
+	fmt.Printf("scraping every %d\n", SCRAPEINTERVAL)
 
 	dataChan := make(chan models.SnowPlaces, 1)
 	// somehow error handle this
@@ -35,8 +35,6 @@ func main() {
 		SnowForecast: nil,
 	}
 
-	toast.GetLevel(dataChan, snowPlace)
-
 	// call alert logic here
-
+	toast.GetLevel(dataChan, snowPlace)
 }
