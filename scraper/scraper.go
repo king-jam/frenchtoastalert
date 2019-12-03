@@ -14,31 +14,21 @@ import (
 
 var timeStamp string
 
-func doEvery(d time.Duration, f func(time.Time)) {
-	for x := range time.Tick(d) {
-		f(x)
+func doEvery(d time.Duration, f func() (*models.Forecast, error)) {
+	for range time.Tick(d) {
+		f()
 	}
 }
 
+// ScrapeAndParse goes and gets the data every set duration
+func ScrapeAndParse(d time.Duration) (*models.SnowPlaces, error) {
+	doEvery(d, Scraper)
+
+}
+
 // Scraper scrapes
-func Scraper(t time.Duration) (*http.Response, error) {
-	// // Request the HTML page.
-	// res, err := http.Get("https://www.weather.gov/box/winter")
-	// if err != nil {
-	// 	return err
-	// }
-	// defer res.Body.Close()
-	// if res.StatusCode != 200 {
-	// 	return fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
-	// }
-
-	// // Load the HTML document
-	// doc, err := goquery.NewDocumentFromReader(res.Body)
-	// if err != nil {
-	// 	return err
-	// }
-	// doc.Text()
-
+func Scraper() (*models.Forecast, error) {
+	// Request the HTML page.
 	resp, err := http.Get("https://www.weather.gov/source/box/winter/snow_prob.xml")
 	if err != nil {
 		// handle error
@@ -47,13 +37,6 @@ func Scraper(t time.Duration) (*http.Response, error) {
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("status code error: %d %s", resp.StatusCode, resp.Status)
 	}
-	return resp, nil
-
-}
-
-// Parser parses
-func Parser(resp *http.Response) (*models.SnowPlaces, error) {
-
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -62,6 +45,12 @@ func Parser(resp *http.Response) (*models.SnowPlaces, error) {
 
 	var forecast models.Forecast
 	xml.Unmarshal(body, &forecast)
+	return &forecast, nil
+}
+
+// Parser parses
+func Parser(forecast models.Forecast) (*models.SnowPlaces, error) {
+
 	// snowPlaces := make(models.SnowPlaces)
 	// snowCity := make(models.SnowCity)
 	snowPlaces := make(models.SnowPlaces, 0)

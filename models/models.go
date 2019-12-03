@@ -9,8 +9,9 @@ type Forecast struct {
 	TimeStamp string   `xml:"timestamp"`
 }
 
-// Snow is amazing stuff
-type Snow struct {
+// SnowForcast is a individual snow forcast for a given place, state, county at a time
+type SnowForcast struct {
+	TimeStamp              string
 	Place                  string
 	State                  string
 	County                 string
@@ -28,7 +29,7 @@ type Snow struct {
 }
 
 // SnowPlaces is a list of places that get snow
-type SnowPlaces []Snow
+type SnowPlaces []SnowForcast
 
 // // SnowCity is a easy lookup for snow data
 // type SnowCity map[string]Snow
