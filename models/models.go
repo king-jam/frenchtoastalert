@@ -1,6 +1,10 @@
 package models
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+
+	"github.com/jinzhu/gorm"
+)
 
 // Forecast is all things from allen
 type Forecast struct {
@@ -11,6 +15,7 @@ type Forecast struct {
 
 // SnowForecast is a individual snow forcast for a given place, state, county at a time
 type SnowForecast struct {
+	gorm.Model
 	ID                     string
 	TimeStamp              string
 	LowEndSnowfall         float64
@@ -28,6 +33,7 @@ type SnowForecast struct {
 
 // SnowPlace is a list of places that get snow
 type SnowPlace struct {
+	gorm.Model
 	ID           string
 	Place        string
 	State        string
