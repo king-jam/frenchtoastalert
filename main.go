@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/sha1"
 	"fmt"
 	"log"
 	"time"
@@ -9,7 +8,6 @@ import (
 	"github.com/king-jam/ft-alert-bot/models"
 	"github.com/king-jam/ft-alert-bot/scraper"
 	"github.com/king-jam/ft-alert-bot/store"
-	"github.com/king-jam/ft-alert-bot/toast"
 )
 
 // SCRAPEINTERVAL will be set with flags
@@ -27,33 +25,41 @@ func main() {
 	state := "ME"
 	county := "Kennebec"
 
-	hash := sha1.New()
-	hash.Write([]byte(place + state + county))
-	snowPlace := models.SnowPlace{
-		ID:           fmt.Sprintf("%x", hash.Sum(nil)),
-		Place:        place,
-		State:        state,
-		County:       county,
-		SnowForecast: nil,
+	snowPlace := &models.SnowPlace{
+		Place:  place,
+		State:  state,
+		County: county,
 	}
-
-	// call alert logic here
-	toast.GetLevel(dataChan, snowPlace)
 
 	// post snow place into database
-	db, err := store.NewDB()
+	s, err := store.NewDB()
 	if err != nil {
 		log.Fatalln(err)
 	}
-	defer db.DB.Close()
-	err = db.StorePlaces(snowPlace)
-	if err != nil {
-		log.Fatalln(err)
+	defer s.DB.Close()
+
+	f := models.SnowForecast{
+		Toast:     models.LevelTwo,
+		TimeStamp: "VAL",
 	}
-	getPlace := &models.SnowPlace{
-		ID: fmt.Sprintf("%x", hash.Sum(nil)),
-	}
-	data := &models.SnowPlace{}
-	db.DB.First(data, getPlace)
-	fmt.Printf("%+v", data)
+	snowForecasts := make([]models.SnowForecast, 0)
+	snowForecasts = append(snowForecasts, f)
+	//f.SnowPlace = snowPlace
+	snowPlace.SnowForecasts = snowForecasts
+	s.DB.Create(snowPlace)
+
+	// // call alert logic here
+	// ts := toast.New(s)
+	// ts.SetLevel(dataChan)
+
+	// data, err := ts.Repo.Last(snowPlace)
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
+	//data := models.SnowPlace{}
+
+	// s.DB.Last(data, snowPlace)
+	//s.DB.Model(&data).Related(&snowForecasts, "SnowForecasts")
+
+	//fmt.Printf("%+v", data)
 }

@@ -1,7 +1,6 @@
 package scraper
 
 import (
-	"crypto/sha1"
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
@@ -30,6 +29,8 @@ func doEvery(d time.Duration, dataChan chan models.SnowPlaces, f func() (*models
 			if err != nil {
 				return err
 			}
+			// Store Parsed Data in DB
+
 			timeStamp = forecast.TimeStamp
 			//SnowPlacesStore = snowPlaces
 			dataChan <- snowPlaces
@@ -70,6 +71,7 @@ func Scraper() (*models.Forecast, error) {
 // Parser parses
 func Parser(forecast *models.Forecast) (models.SnowPlaces, error) {
 	snowPlaces := make(models.SnowPlaces, 0)
+	snowForecasts := make([]*models.SnowForecast, 0)
 	line := strings.Split(forecast.Text, "\n")
 	for _, v := range line {
 		// input validation for bad strings from xml parse
@@ -135,16 +137,16 @@ func Parser(forecast *models.Forecast) (models.SnowPlaces, error) {
 			ChanceMoreThanTwelve:   chanceMoreThanTwelve,
 			ChanceMoreThanEighteen: chanceMoreThanEighteen,
 		}
-		hash := sha1.New()
-		hash.Write([]byte(lineItems[0] + lineItems[1] + lineItems[2]))
+		snowForecasts = append(snowForecasts, snowForecast)
+
 		snowPlace := &models.SnowPlace{
-			ID:           fmt.Sprintf("%x", hash.Sum(nil)),
-			Place:        lineItems[0],
-			State:        lineItems[1],
-			County:       lineItems[2],
-			SnowForecast: snowForecast,
+			Place:  lineItems[0],
+			State:  lineItems[1],
+			County: lineItems[2],
+			//SnowForecasts: snowForecasts,
 		}
 		snowPlaces = append(snowPlaces, snowPlace)
 	}
+
 	return snowPlaces, nil
 }

@@ -1,41 +1,64 @@
 package toast
 
-import "fmt"
+import (
+	"github.com/king-jam/ft-alert-bot/models"
+)
 
-import "github.com/king-jam/ft-alert-bot/models"
-
-// GetLevel gets the alert level based on this highly complex algorithm
-func GetLevel(dataChan chan models.SnowPlaces, place models.SnowPlace) {
-	for snowPlaces := range dataChan {
-	Loop:
-		for _, snowPlace := range snowPlaces {
-			if snowPlace.ID == place.ID {
-				switch snowLevel := snowPlace.SnowForecast.ExpectedSnowfall; {
-				case snowLevel < 0.1: // none
-					fmt.Println("none")
-					break Loop
-				case snowLevel >= 0.1 && snowLevel < 2.0: // low
-					fmt.Println("low")
-					break Loop
-				case snowLevel >= 2.0 && snowLevel < 6.0: // guarded
-					fmt.Println("guarded")
-					break Loop
-				case snowLevel >= 6.0 && snowLevel < 12.0: // elevated
-					fmt.Println("elevated")
-					break Loop
-				case snowLevel >= 12.0 && snowLevel < 18.0: // high
-					fmt.Println("high")
-					break Loop
-				case snowLevel >= 18.0: // severe
-					fmt.Println("severe")
-					break Loop
-				default: // unknown therefore internet is likely down due to ice age
-					fmt.Println("Ice Age")
-					break Loop
-				}
-			}
-		}
-		return
-	}
-
+// ToastService wraps the store interface funcs
+type ToastService struct {
+	Repo models.Repository
 }
+
+// New returns an initialized toastservice for making toast
+func New(repo models.Repository) *ToastService {
+	return &ToastService{Repo: repo}
+}
+
+// SetLevel gets the alert level based on this highly complex algorithm
+// func (t *ToastService) SetLevel(dataChan chan models.SnowPlaces) {
+// 	for snowPlaces := range dataChan {
+// 	Loop:
+// 		for _, snowPlace := range snowPlaces {
+// 			for j, snowForecast := range snowPlace.SnowForecasts {
+// 				switch snowLevel := snowForecast.ExpectedSnowfall; {
+// 				case snowLevel < 0.1: // none
+// 					fmt.Println("none")
+// 					snowPlace.SnowForecasts[j].Toast = models.LevelZero
+// 					t.Repo.Insert(snowPlace)
+// 					break Loop
+// 				case snowLevel >= 0.1 && snowLevel < 2.0: // low
+// 					fmt.Println("low")
+// 					snowPlace.SnowForecasts[j].Toast = models.LevelOne
+// 					t.Repo.Insert(snowPlace)
+// 					break Loop
+// 				case snowLevel >= 2.0 && snowLevel < 6.0: // guarded
+// 					fmt.Println("guarded")
+// 					snowPlace.SnowForecasts[j].Toast = models.LevelTwo
+// 					t.Repo.Insert(snowPlace)
+// 					break Loop
+// 				case snowLevel >= 6.0 && snowLevel < 12.0: // elevated
+// 					fmt.Println("elevated")
+// 					snowPlace.SnowForecasts[j].Toast = models.LevelThree
+// 					t.Repo.Insert(snowPlace)
+// 					fmt.Printf("%+v\n", snowPlace)
+// 					break Loop
+// 				case snowLevel >= 12.0 && snowLevel < 18.0: // high
+// 					fmt.Println("high")
+// 					snowPlace.SnowForecasts[j].Toast = models.LevelFour
+// 					t.Repo.Insert(snowPlace)
+// 					break Loop
+// 				case snowLevel >= 18.0: // severe
+// 					fmt.Println("severe")
+// 					snowPlace.SnowForecasts[j].Toast = models.LevelFive
+// 					t.Repo.Insert(snowPlace)
+// 					break Loop
+// 				default: // unknown therefore internet is likely down due to ice age
+// 					fmt.Println("Ice Age")
+// 					break Loop
+// 				}
+// 			}
+// 		}
+// 		return
+// 	}
+
+// }
