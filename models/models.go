@@ -16,14 +16,10 @@ type Forecast struct {
 }
 
 // SnowForecast is a individual snow forcast for a given place, state, county at a time
-type SnowPlaceForecast struct {
+type SnowForecast struct {
 	gorm.Model
-	Place         string
-	State         string
-	County        string
-
-	// SnowPlaceID uint64
-	// SnowPlace   *SnowPlace `gorm:"foreignkey:SnowPlaceID"`
+	SnowPlaceID uint64
+	SnowPlace   *SnowPlace `gorm:"foreignkey:SnowPlaceID"`
 	ToastID     uint64
 	Toast       *Toast `gorm:"foreignkey:ToastID"` //;association_foreignkey:slices"` //;foreignkey:snowPlaceId"`//`gorm:"foreignkey:Slices"`
 
@@ -42,15 +38,14 @@ type SnowPlaceForecast struct {
 }
 
 // SnowPlace is a list of places that get snow
-// type SnowPlace struct {
-// 	gorm.Model
-// 	// SnowForecastID uint //`gorm:"primary_key:true"`
-// 	Place         string
-// 	State         string
-// 	County        string
-// 	SnowForecasts []SnowForecast `gorm:"foreignkey:SnowPlaceID"`
-// 	//SnowForecasts []*SnowForecast //`gorm:"many2many:snowplace_snowforecast"` //;association_foreignkey:snowForecastId;foreignkey:snowPlaceId"` //;foreignkey:SnowPlaceID
-// }
+type SnowPlace struct {
+	gorm.Model
+	Place         string
+	State         string
+	County        string
+	SnowForecasts []SnowForecast //`gorm:"foreignkey:SnowForecastID"`
+	// 	//SnowForecasts []*SnowForecast //`gorm:"many2many:snowplace_snowforecast"` //;association_foreignkey:snowForecastId;foreignkey:snowPlaceId"` //;foreignkey:SnowPlaceID
+}
 
 // SnowPlaces is a list of snowplace objects which all have a forcast
 type SnowPlaces []*SnowPlace
@@ -58,10 +53,9 @@ type SnowPlaces []*SnowPlace
 // Toast has all the ingredients
 type Toast struct {
 	gorm.Model
-	Slices        uint `gorm:"primary_key:true"`
-	Status        string
-	Alert         string
-	SnowForecasts []SnowForecast `gorm:"foreignkey:ToastID"`
+	Slices uint `gorm:"primary_key:true"`
+	Status string
+	Alert  string
 }
 
 var LevelZero = &Toast{Slices: 0, Status: "None", Alert: ""}

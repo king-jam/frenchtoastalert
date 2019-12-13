@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/king-jam/ft-alert-bot/models"
 	"github.com/king-jam/ft-alert-bot/scraper"
 	"github.com/king-jam/ft-alert-bot/store"
@@ -38,15 +39,54 @@ func main() {
 	}
 	defer s.DB.Close()
 
-	f := models.SnowForecast{
-		Toast:     models.LevelTwo,
-		TimeStamp: "VAL",
+	t := &models.Toast{}
+	s.DB.FirstOrCreate(t, models.LevelTwo)
+	sp := &models.SnowPlace{}
+	s.DB.FirstOrCreate(sp, snowPlace)
+
+	f := &models.SnowForecast{
+		Toast:     t,
+		TimeStamp: "VALARIE",
+		SnowPlace: sp,
 	}
 	snowForecasts := make([]models.SnowForecast, 0)
-	snowForecasts = append(snowForecasts, f)
+	// snowForecasts = append(snowForecasts, f)
 	//f.SnowPlace = snowPlace
-	snowPlace.SnowForecasts = snowForecasts
-	s.DB.Create(snowPlace)
+	// snowPlace.SnowForecasts = snowForecasts
+	s.DB.Create(f)
+	data := &models.SnowForecast{}
+	// toast := &models.Toast{}
+	splace := &models.SnowPlace{}
+	data.SnowPlace = splace
+	// data.Toast = toast
+
+	// snowPlaceBAD := &models.SnowPlace{
+	// 	Place:  "nope",
+	// 	State:  "MA",
+	// 	County: "NOT",
+	// }
+	//s.DB.First(data, &models.SnowForecast{TimeStamp: "VALARIE"}).Related(toast).Related(splace)
+	// s.DB.Set("gorm:auto_preload", true)
+	data.SnowPlace = snowPlace
+	// snowPlace = snowPlaceBAD
+	// I WANT THE LAST SNOWFORECAST PER SNOW PLACE
+
+	// get all forecasts for a give snow place and then order them and pick last one
+	s.DB.Find(&splace)
+
+	s.DB.Preload("Toast").Preload("SnowPlace", "state = ?", "MA").Find(&snowForecasts)
+
+	// s.DB.Preload("Toast").Preload("SnowPlace").Where("TimeStamp").Find(&snowForecasts)
+
+	// s.DB.Preload("SnowForecasts").First(splace)
+
+	// s.DB.First(splace, snowPlace).Related(&snowForecasts).Related(toast)
+	// splace.SnowForecasts = snowForecasts
+	// fmt.Printf("Forecast %+v\n\n\n", data.ID)
+
+	// // s.DB.Model(data).Related(toast)
+	// fmt.Printf("Toast %+v\n\n\n", toast.Slices)
+	//data.Toast = toast
 
 	// // call alert logic here
 	// ts := toast.New(s)
@@ -60,6 +100,6 @@ func main() {
 
 	// s.DB.Last(data, snowPlace)
 	//s.DB.Model(&data).Related(&snowForecasts, "SnowForecasts")
+	spew.Dump(snowForecasts)
 
-	//fmt.Printf("%+v", data)
 }
