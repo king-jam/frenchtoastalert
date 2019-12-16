@@ -18,7 +18,7 @@ var timeStamp string
 // SnowPlacesStore is a temp store for data
 //var SnowPlacesStore models.SnowPlaces
 
-func doEvery(d time.Duration, dataChan chan models.SnowPlaces, f func() (*models.Forecast, error)) error {
+func doEvery(d time.Duration, dataChan chan models.SnowForecasts, f func() (*models.Forecast, error)) error {
 	for range time.Tick(d) {
 		forecast, err := f()
 		if err != nil {
@@ -40,7 +40,7 @@ func doEvery(d time.Duration, dataChan chan models.SnowPlaces, f func() (*models
 }
 
 // ScrapeAndParse goes and gets the data every set duration
-func ScrapeAndParse(d time.Duration, dataChan chan models.SnowPlaces) error {
+func ScrapeAndParse(d time.Duration, dataChan chan models.SnowForecasts) error {
 	return doEvery(d, dataChan, Scraper)
 }
 
@@ -69,16 +69,25 @@ func Scraper() (*models.Forecast, error) {
 }
 
 // Parser parses
-func Parser(forecast *models.Forecast) (models.SnowPlaces, error) {
-	snowPlaces := make(models.SnowPlaces, 0)
+func Parser(forecast *models.Forecast) (models.SnowForecasts, error) {
+	//snowPlaces := make(models.SnowPlaces, 0)
 	snowForecasts := make([]*models.SnowForecast, 0)
+
 	line := strings.Split(forecast.Text, "\n")
 	for _, v := range line {
+
 		// input validation for bad strings from xml parse
 		if v == " " || v == "" {
 			continue
 		}
 		lineItems := strings.Split(v, ",")
+
+		snowPlace := &models.SnowPlace{
+			Place:  lineItems[0],
+			State:  lineItems[1],
+			County: lineItems[2],
+		}
+
 		lowEndSnowfall, err := strconv.ParseFloat(lineItems[4], 64)
 		if err != nil {
 			return nil, err
@@ -124,6 +133,7 @@ func Parser(forecast *models.Forecast) (models.SnowPlaces, error) {
 			return nil, err
 		}
 		snowForecast := &models.SnowForecast{
+			SnowPlace:              snowPlace,
 			TimeStamp:              forecast.TimeStamp,
 			LowEndSnowfall:         lowEndSnowfall,
 			ExpectedSnowfall:       expectedSnowfall,
@@ -138,15 +148,28 @@ func Parser(forecast *models.Forecast) (models.SnowPlaces, error) {
 			ChanceMoreThanEighteen: chanceMoreThanEighteen,
 		}
 		snowForecasts = append(snowForecasts, snowForecast)
-
-		snowPlace := &models.SnowPlace{
-			Place:  lineItems[0],
-			State:  lineItems[1],
-			County: lineItems[2],
-			//SnowForecasts: snowForecasts,
-		}
-		snowPlaces = append(snowPlaces, snowPlace)
 	}
+	return snowForecasts, nil
+}
 
-	return snowPlaces, nil
+// ScraperService wraps the store interface funcs
+type ScraperService struct {
+	Repo models.Repository
+}
+
+// New returns an initialized ScraperService for making toast
+func New(repo models.Repository) *ScraperService {
+	return &ScraperService{Repo: repo}
+}
+
+func (ss *ScraperService) Store(dataChan chan models.SnowForecasts) error {
+	for snowForecasts := range dataChan {
+		//Loop:
+		for _, snowForecast := range snowForecasts {
+			if err := ss.Repo.Insert(snowForecast); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

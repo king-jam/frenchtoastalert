@@ -1,19 +1,5 @@
 package toast
 
-import (
-	"github.com/king-jam/ft-alert-bot/models"
-)
-
-// ToastService wraps the store interface funcs
-type ToastService struct {
-	Repo models.Repository
-}
-
-// New returns an initialized toastservice for making toast
-func New(repo models.Repository) *ToastService {
-	return &ToastService{Repo: repo}
-}
-
 // SetLevel gets the alert level based on this highly complex algorithm
 // func (t *ToastService) SetLevel(dataChan chan models.SnowPlaces) {
 // 	for snowPlaces := range dataChan {

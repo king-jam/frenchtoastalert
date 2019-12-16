@@ -6,6 +6,16 @@ import (
 	"github.com/king-jam/ft-alert-bot/models"
 )
 
+// ScraperService wraps the store interface funcs
+type ScraperService struct {
+	Repo models.Repository
+}
+
+// New returns an initialized ScraperService for making toast
+func New(repo models.Repository) *ScraperService {
+	return &ScraperService{Repo: repo}
+}
+
 type Store struct {
 	DB *gorm.DB
 }
@@ -69,21 +79,41 @@ func initToast(db *gorm.DB) error {
 }
 
 // Store yolo puts things into the db
-func (s *Store) Insert(snowPlace *models.SnowPlace) error {
-	if result := s.DB.Create(snowPlace); result.Error != nil {
+func (s *Store) Insert(snowForecast *models.SnowForecast) error {
+
+	sp := &models.SnowPlace{}
+	s.DB.FirstOrCreate(sp, snowForecast.SnowPlace)
+	// s.DB.Last(sp, snowPlace)
+	// sp.SnowForecasts = snowPlace.SnowForecasts
+	// s.DB.FirstOrCreate(sp, testSnowPlace)
+
+	// snowPlace.SnowForecasts[0].SnowPlaceID = sp.ID
+	// &snowPlace.SnowForecasts[0]
+	snowForecast.SnowPlaceID = sp.ID
+	snowForecast.SnowPlace = sp
+
+	if result := s.DB.Create(snowForecast); result.Error != nil {
 		return models.ErrDatabaseGeneral(result.Error.Error())
 	}
 	return nil
 }
 
+// func (s *Store) Upsert(snowPlace *models.SnowPlace) error {
+
+// 	s.DB.Up
+// 	return nil
+// }
+
 // Last gets the last entry into the db table of snowPlaces
 func (s *Store) Last(query *models.SnowPlace) (*models.SnowPlace, error) {
 	snowPlace := new(models.SnowPlace)
-	if result := s.DB.Where("place = ? AND state = ? AND county = ?", query.Place, query.State, query.County).First(snowPlace); result.Error != nil {
+	snowForecasts := make([]models.SnowForecast, 0)
+	if result := s.DB.Find(snowPlace, query).Related(&snowForecasts); result.Error != nil {
 		if gorm.IsRecordNotFoundError(result.Error) {
 			return nil, models.ErrRecordNotFound
 		}
 		return nil, models.ErrDatabaseGeneral(result.Error.Error())
 	}
+	snowPlace.SnowForecasts = snowForecasts
 	return snowPlace, nil
 }

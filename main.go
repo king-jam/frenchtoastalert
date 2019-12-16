@@ -17,11 +17,11 @@ const SCRAPEINTERVAL time.Duration = 3
 func main() {
 	fmt.Printf("scraping every %d\n", SCRAPEINTERVAL)
 
-	dataChan := make(chan models.SnowPlaces, 1)
+	dataChan := make(chan models.SnowForecasts, 1)
 	// somehow error handle this
 	go func() { scraper.ScrapeAndParse(SCRAPEINTERVAL*time.Second, dataChan) }()
 
-	// make a place to subscribe to alerts from
+	//make a place to subscribe to alerts from
 	place := "Waterville"
 	state := "ME"
 	county := "Kennebec"
@@ -39,25 +39,64 @@ func main() {
 	}
 	defer s.DB.Close()
 
-	t := &models.Toast{}
-	s.DB.FirstOrCreate(t, models.LevelTwo)
-	sp := &models.SnowPlace{}
-	s.DB.FirstOrCreate(sp, snowPlace)
+	// t := &models.Toast{}
+	// s.DB.FirstOrCreate(t, models.LevelTwo)
 
-	f := &models.SnowForecast{
-		Toast:     t,
-		TimeStamp: "VALARIE",
-		SnowPlace: sp,
+	// ss := scraper.New(s)
+	// err = ss.Store(dataChan)
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
+
+	data, err := s.Last(snowPlace)
+	if err != nil {
+		log.Fatalln(err)
 	}
-	snowForecasts := make([]models.SnowForecast, 0)
+	spew.Dump(data)
+
+	// sp := &models.SnowPlace{}
+	// s.DB.FirstOrCreate(sp, testSnowPlace)
+
+	// f := &models.SnowForecast{
+	// 	Toast:     t,
+	// 	TimeStamp: "VALARIE",
+	// 	SnowPlace: sp,
+	// }
+	// s.DB.Create(f)
+
+	// OUT OBJECTS
+	//snowForecasts := make([]models.SnowForecast, 0)
+	// snowForecast := models.SnowForecast{}
+
+	// snowPlaces := make([]models.SnowPlace, 0)
+	//snowPlace := models.SnowPlace{}
+
+	// toasts := make([]models.Toast, 0)
+	// toast := models.Toast{}
+
+	// QUERIES
+
+	// GIVEN a snow place, find the forecasts
+
+	// s.DB.First(&snowPlace).Find(&snowForecasts)
+	// FIRST -> SELECT * FROM "snow_places"  WHERE "snow_places"."deleted_at" IS NULL ORDER BY "snow_places"."id" ASC LIMIT 1
+	// FIND -> SELECT * FROM "snow_forecasts"  WHERE "snow_forecasts"."deleted_at" IS NULL ORDER BY "snow_forecasts"."id" ASC
+
+	// s.DB.First(&snowPlace).Related(&snowForecasts)
+	// FIRST -> SELECT * FROM "snow_places"  WHERE "snow_places"."deleted_at" IS NULL ORDER BY "snow_places"."id" ASC LIMIT 1
+	// RELATED -> SELECT * FROM "snow_forecasts"  WHERE "snow_forecasts"."deleted_at" IS NULL AND (("snow_place_id" = $1)) ORDER BY "snow_forecasts"."id" ASC parameters: $1 = '1'
+
+	// snowPlace.SnowForecasts = snowForecasts
+	//s.DB.First(&snowPlace).Related(&snowForecasts)
+	//snowPlace.SnowForecasts = snowForecasts
+
 	// snowForecasts = append(snowForecasts, f)
 	//f.SnowPlace = snowPlace
 	// snowPlace.SnowForecasts = snowForecasts
-	s.DB.Create(f)
-	data := &models.SnowForecast{}
+	// data := &models.SnowForecast{}
 	// toast := &models.Toast{}
-	splace := &models.SnowPlace{}
-	data.SnowPlace = splace
+	// splace := &models.SnowPlace{}
+	// data.SnowPlace = splace
 	// data.Toast = toast
 
 	// snowPlaceBAD := &models.SnowPlace{
@@ -66,15 +105,18 @@ func main() {
 	// 	County: "NOT",
 	// }
 	//s.DB.First(data, &models.SnowForecast{TimeStamp: "VALARIE"}).Related(toast).Related(splace)
-	// s.DB.Set("gorm:auto_preload", true)
-	data.SnowPlace = snowPlace
+	//s.DB.Set("gorm:auto_preload", true)
+	// data.SnowPlace = snowPlace
 	// snowPlace = snowPlaceBAD
 	// I WANT THE LAST SNOWFORECAST PER SNOW PLACE
 
 	// get all forecasts for a give snow place and then order them and pick last one
-	s.DB.Find(&splace)
+	//s.DB.Set("gorm:auto_preload", true).Find(&snowForecasts)
 
-	s.DB.Preload("Toast").Preload("SnowPlace", "state = ?", "MA").Find(&snowForecasts)
+	// s.DB.Preload("Toast").Preload("SnowPlace").Find(&snowForecasts)
+
+	// s.DB.First(&splace).Related(&snowForecasts, "SnowForecasts")
+	// splace.SnowForecasts = snowForecasts
 
 	// s.DB.Preload("Toast").Preload("SnowPlace").Where("TimeStamp").Find(&snowForecasts)
 
@@ -100,6 +142,6 @@ func main() {
 
 	// s.DB.Last(data, snowPlace)
 	//s.DB.Model(&data).Related(&snowForecasts, "SnowForecasts")
-	spew.Dump(snowForecasts)
+	//spew.Dump(snowPlace)
 
 }
