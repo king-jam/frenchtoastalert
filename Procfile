@@ -1,2 +1,2 @@
-worker: bin/scraper
+worker: make build-all && bin/scraper
 
