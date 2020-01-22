@@ -1,2 +1,3 @@
-web: ./bin/server
-web: ./bin/scraper
+worker: make build-all
+web: bin/server
+web: bin/scraper
