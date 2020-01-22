@@ -1,2 +1,2 @@
-web: bin/scraper
+worker: bin/scraper
 
