@@ -25,9 +25,9 @@ import (
 // }
 
 func main() {
-	fs := http.FileServer(http.Dir("/home/tom/workspace/git/ft-alert-bot/data/source"))
+	fs := http.FileServer(http.Dir("data/source"))
 	http.Handle("/", fs)
 
 	log.Println("Serving weather data...")
-	http.ListenAndServe(":6969", nil)
+	http.ListenAndServe(":7000", nil)
 }

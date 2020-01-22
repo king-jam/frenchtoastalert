@@ -12,7 +12,7 @@ import (
 func ToastApi() {
 
 	http.HandleFunc("/toast", ToastHandler)
-	http.ListenAndServe(":7777", nil)
+	http.ListenAndServe(":8000", nil)
 	log.Println("Serving toast")
 }
 
@@ -70,27 +70,27 @@ func CheckToast(area *models.Area) *models.Location {
 
 func makeFriendlyToastAlert(toastLocation *models.Location, toastLevel *models.Toast) models.ToastAlert {
 	toastForecast := &models.ToastSnowForecast{
-		TimeStamp : 				toastLocation.SnowForecasts[0].TimeStamp,
-		LowEndSnowfall : 			toastLocation.SnowForecasts[0].LowEndSnowfall,
-		ExpectedSnowfall : 			toastLocation.SnowForecasts[0].ExpectedSnowfall,
-		HighEndSnowfall : 			toastLocation.SnowForecasts[0].HighEndSnowfall,
-		ChanceMoreThanZero : 		toastLocation.SnowForecasts[0].ChanceMoreThanZero,
-		ChanceMoreThanOne : 		toastLocation.SnowForecasts[0].ChanceMoreThanOne,
-		ChanceMoreThanTwo : 		toastLocation.SnowForecasts[0].ChanceMoreThanTwo,
-		ChanceMoreThanFour:         toastLocation.SnowForecasts[0].ChanceMoreThanFour,  
-		ChanceMoreThanSix :     	toastLocation.SnowForecasts[0].ChanceMoreThanSix,      
-		ChanceMoreThanEight:    	toastLocation.SnowForecasts[0].ChanceMoreThanEight,    
-		ChanceMoreThanTwelve :  	toastLocation.SnowForecasts[0].ChanceMoreThanTwelve,   
-		ChanceMoreThanEighteen :	toastLocation.SnowForecasts[0].ChanceMoreThanEighteen, 
+		TimeStamp:              toastLocation.SnowForecasts[0].TimeStamp,
+		LowEndSnowfall:         toastLocation.SnowForecasts[0].LowEndSnowfall,
+		ExpectedSnowfall:       toastLocation.SnowForecasts[0].ExpectedSnowfall,
+		HighEndSnowfall:        toastLocation.SnowForecasts[0].HighEndSnowfall,
+		ChanceMoreThanZero:     toastLocation.SnowForecasts[0].ChanceMoreThanZero,
+		ChanceMoreThanOne:      toastLocation.SnowForecasts[0].ChanceMoreThanOne,
+		ChanceMoreThanTwo:      toastLocation.SnowForecasts[0].ChanceMoreThanTwo,
+		ChanceMoreThanFour:     toastLocation.SnowForecasts[0].ChanceMoreThanFour,
+		ChanceMoreThanSix:      toastLocation.SnowForecasts[0].ChanceMoreThanSix,
+		ChanceMoreThanEight:    toastLocation.SnowForecasts[0].ChanceMoreThanEight,
+		ChanceMoreThanTwelve:   toastLocation.SnowForecasts[0].ChanceMoreThanTwelve,
+		ChanceMoreThanEighteen: toastLocation.SnowForecasts[0].ChanceMoreThanEighteen,
 	}
 
 	toastAlert := models.ToastAlert{
-		Area: *toastLocation.Area,
+		Area:              *toastLocation.Area,
 		ToastSnowForecast: *toastForecast,
-		Toast: *toastLevel,
+		Toast:             *toastLevel,
 	}
 
-	for forecast := range toastLocation.SnowForecasts{
+	for forecast := range toastLocation.SnowForecasts {
 		fmt.Println("--------------------", forecast)
 	}
 	return toastAlert
@@ -113,7 +113,7 @@ func SetLevel(locationForecast *models.Location) *models.Toast {
 			return models.LevelFour
 		case snowLevel >= 18.0: // severe
 			return models.LevelFive
-		default: 
+		default:
 			//FIXME: unknown therefore internet is likely down due to ice age
 			fmt.Println("Ice Age")
 			return models.LevelFive

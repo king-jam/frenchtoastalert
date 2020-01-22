@@ -46,7 +46,7 @@ func ScrapeAndParse(d time.Duration, dataChan chan models.SnowForecasts) error {
 func Scraper() (*models.Forecast, error) {
 	// Request the HTML page.
 	//resp, err := http.Get("https://www.weather.gov/source/box/winter/snow_prob.xml")
-	resp, err := http.Get("http://localhost:6969/snow_prob.xml")
+	resp, err := http.Get("http://localhost:7000/snow_prob.xml")
 
 	if err != nil {
 		// handle error
