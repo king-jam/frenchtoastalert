@@ -2,6 +2,7 @@ package store
 
 import (
 	"log"
+	"os"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -23,9 +24,13 @@ type Store struct {
 }
 
 func NewDB() (*Store, error) {
-	pg, err := gorm.Open("postgres", "host=localhost port=54320 user=snow dbname=snow password=snow123 sslmode=disable")
+	// pg, err := gorm.Open("postgres", "host=localhost port=54320 user=snow dbname=snow password=snow123 sslmode=disable")
+	// if err != nil {
+	// 	return nil, err
+	// }
+	pg, err := gorm.Open("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
-		return nil, err
+		log.Fatal(err)
 	}
 	db := &Store{DB: pg}
 	//db.DB.DropTableIfExists(&models.Location{})
@@ -163,7 +168,7 @@ func (s *Store) LatestForecast(query *models.Location) (*models.Location, error)
 	toastAlert := new(models.ToastAlert)
 	snowForecasts := make([]models.SnowForecast, 0)
 	if result := s.DB.Last(location, query).Related(&snowForecasts).Select(location, toastAlert); result.Error != nil {
-	//if result := s.DB.Last(location, query).Related(&snowForecasts); result.Error != nil {
+		//if result := s.DB.Last(location, query).Related(&snowForecasts); result.Error != nil {
 		if gorm.IsRecordNotFoundError(result.Error) {
 			return nil, models.ErrRecordNotFound
 		}
@@ -172,7 +177,6 @@ func (s *Store) LatestForecast(query *models.Location) (*models.Location, error)
 	location.SnowForecasts = snowForecasts
 	return location, nil
 }
-
 
 // Last gets the last entry into the db table of snowPlaces
 func (s *Store) Last(query *models.Location) (*models.Location, error) {
