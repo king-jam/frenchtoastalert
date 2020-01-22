@@ -18,12 +18,53 @@ type Forecast struct {
 // SnowForecast is a individual snow forcast for a given place, state, county at a time
 type SnowForecast struct {
 	gorm.Model
+	LocationID uint
+	Location   *Location `gorm:"foreignkey:LocationID"`
+	//snowForecast.LocationsnowForecast.LocationArea 					*Area `gorm:"foreignkey:LocationID"`
+	TimeStamp              string
+	LowEndSnowfall         float64
+	ExpectedSnowfall       float64
+	HighEndSnowfall        float64
+	ChanceMoreThanZero     float64
+	ChanceMoreThanOne      float64
+	ChanceMoreThanTwo      float64
+	ChanceMoreThanFour     float64
+	ChanceMoreThanSix      float64
+	ChanceMoreThanEight    float64
+	ChanceMoreThanTwelve   float64
+	ChanceMoreThanEighteen float64
 	//SnowForecastID uint
-	SnowPlaceID uint
-	SnowPlace   *SnowPlace `gorm:"foreignkey:SnowPlaceID"`
 	//ToastID     uint64
-	//Toast       *Toast `gorm:"foreignkey:ToastID"` //;association_foreignkey:slices"` //;foreignkey:snowPlaceId"`//`gorm:"foreignkey:Slices"`
+	//Toast       *Toast `gorm:"foreignkey:ToastID"` //;association_foreignkey:slices"` //;foreignkey:LocationId"`//`gorm:"foreignkey:Slices"`
+}
 
+type Area struct {
+	City   string
+	State  string
+	County string
+}
+
+// Location is a list of places that get snow
+type Location struct {
+	gorm.Model
+	*Area
+	SnowForecasts []SnowForecast //`gorm:"foreignkey:SnowForecastID"` //`gorm:"many2many:Location_snowforecast;association_foreignkey:ToastID;foreignkey:LocationID"` //`gorm:"foreignkey:SnowForecastID"`
+	// 	//SnowForecasts []*SnowForecast //`gorm:"many2many:Location_snowforecast"` //;association_foreignkey:snowForecastId;foreignkey:LocationId"` //;foreignkey:LocationID
+}
+
+// Locations is a list of Location objects which all have a forcast
+type Locations []*Location
+
+// SnowForecasts is a list of Location objects which all have a forcast
+type SnowForecasts []*SnowForecast
+
+type ToastAlert struct {
+	Area         Area
+	ToastSnowForecast ToastSnowForecast
+	Toast        Toast
+}
+
+type ToastSnowForecast struct {
 	TimeStamp              string
 	LowEndSnowfall         float64
 	ExpectedSnowfall       float64
@@ -38,26 +79,10 @@ type SnowForecast struct {
 	ChanceMoreThanEighteen float64
 }
 
-// SnowPlace is a list of places that get snow
-type SnowPlace struct {
-	gorm.Model
-	Place         string
-	State         string
-	County        string
-	SnowForecasts []SnowForecast //`gorm:"foreignkey:SnowForecastID"` //`gorm:"many2many:snowplace_snowforecast;association_foreignkey:ToastID;foreignkey:snowPlaceID"` //`gorm:"foreignkey:SnowForecastID"`
-	// 	//SnowForecasts []*SnowForecast //`gorm:"many2many:snowplace_snowforecast"` //;association_foreignkey:snowForecastId;foreignkey:snowPlaceId"` //;foreignkey:SnowPlaceID
-}
-
-// SnowPlaces is a list of snowplace objects which all have a forcast
-type SnowPlaces []*SnowPlace
-
-// SnowForecasts is a list of snowplace objects which all have a forcast
-type SnowForecasts []*SnowForecast
-
 // Toast has all the ingredients
 type Toast struct {
-	gorm.Model
-	Slices uint `gorm:"primary_key:true"`
+	//gorm.Model
+	Slices uint //`gorm:"primary_key:true"`
 	Status string
 	Alert  string
 }
@@ -72,7 +97,8 @@ var LevelFive = &Toast{Slices: 5, Status: "Severe", Alert: ""}
 // Repository represent the gif usecases
 type Repository interface {
 	Insert(snowForecast *SnowForecast) error
-	Last(query *SnowPlace) (*SnowPlace, error)
+	Last(query *Location) (*Location, error)
+	LatestForecast(query *Location) (*Location, error)
 }
 
 var (

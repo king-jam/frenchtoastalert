@@ -2,57 +2,48 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"time"
-
-	"github.com/davecgh/go-spew/spew"
 	"github.com/king-jam/ft-alert-bot/models"
 	"github.com/king-jam/ft-alert-bot/scraper"
 	"github.com/king-jam/ft-alert-bot/store"
+	"github.com/king-jam/ft-alert-bot/toast"
+	"sync"
+	"time"
 )
 
 // SCRAPEINTERVAL will be set with flags
 const SCRAPEINTERVAL time.Duration = 3
 
 func main() {
-	fmt.Printf("scraping every %d\n", SCRAPEINTERVAL)
-
+	
 	dataChan := make(chan models.SnowForecasts, 1)
-	// somehow error handle this
 	go func() { scraper.ScrapeAndParse(SCRAPEINTERVAL*time.Second, dataChan) }()
+	fmt.Printf("scraping every %d\n", SCRAPEINTERVAL)
+	go func() { store.ListenAndStore(dataChan) }()
+	go func() { toast.ToastApi() }()
+	
+	
+	//Don't exit main
+	var wg = &sync.WaitGroup{}
+	wg.Add(1)
+	wg.Wait()
 
-	//make a place to subscribe to alerts from
-	place := "Waterville"
-	state := "ME"
-	county := "Kennebec"
-
-	snowPlace := &models.SnowPlace{
-		Place:  place,
-		State:  state,
-		County: county,
-	}
-
-	// post snow place into database
-	s, err := store.NewDB()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer s.DB.Close()
+	// fmt.Printf("", snowPlace)
 
 	// t := &models.Toast{}
 	// s.DB.FirstOrCreate(t, models.LevelTwo)
 
-	// ss := scraper.New(s)
-	// err = ss.Store(dataChan)
+	//  ss := scraper.New(s)
+	//  err = ss.Store(dataChan)
+
+	// // if err != nil {
+	// // 	log.Fatalln(err)
+	// // }
+
+	// data, err := s.Last(snowPlace)
 	// if err != nil {
 	// 	log.Fatalln(err)
 	// }
-
-	data, err := s.Last(snowPlace)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	spew.Dump(data)
+	// spew.Dump(data)
 
 	// sp := &models.SnowPlace{}
 	// s.DB.FirstOrCreate(sp, testSnowPlace)

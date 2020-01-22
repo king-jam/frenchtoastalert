@@ -25,7 +25,7 @@ import (
 // }
 
 func main() {
-	fs := http.FileServer(http.Dir("/home/tom/workspace/ft-alert-bot/data/source"))
+	fs := http.FileServer(http.Dir("/home/tom/workspace/git/ft-alert-bot/data/source"))
 	http.Handle("/", fs)
 
 	log.Println("Serving weather data...")

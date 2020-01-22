@@ -25,15 +25,13 @@ func doEvery(d time.Duration, dataChan chan models.SnowForecasts, f func() (*mod
 			return err
 		}
 		if forecast.TimeStamp != timeStamp {
-			snowPlaces, err := Parser(forecast)
+			Locations, err := Parser(forecast)
 			if err != nil {
 				return err
 			}
-			// Store Parsed Data in DB
 
 			timeStamp = forecast.TimeStamp
-			//SnowPlacesStore = snowPlaces
-			dataChan <- snowPlaces
+			dataChan <- Locations
 		}
 	}
 	return nil
@@ -82,11 +80,15 @@ func Parser(forecast *models.Forecast) (models.SnowForecasts, error) {
 		}
 		lineItems := strings.Split(v, ",")
 
-		snowPlace := &models.SnowPlace{
-			Place:  lineItems[0],
-			State:  lineItems[1],
-			County: lineItems[2],
+		Location := &models.Location{
+			Area: &models.Area{
+				City:  lineItems[0],
+				State:  lineItems[1],
+				County: lineItems[2],
+			},
 		}
+		
+		
 
 		lowEndSnowfall, err := strconv.ParseFloat(lineItems[4], 64)
 		if err != nil {
@@ -133,7 +135,7 @@ func Parser(forecast *models.Forecast) (models.SnowForecasts, error) {
 			return nil, err
 		}
 		snowForecast := &models.SnowForecast{
-			SnowPlace:              snowPlace,
+			Location:				Location,
 			TimeStamp:              forecast.TimeStamp,
 			LowEndSnowfall:         lowEndSnowfall,
 			ExpectedSnowfall:       expectedSnowfall,
