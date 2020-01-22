@@ -1,3 +1,3 @@
 worker: make build-all
-worker: bin/scraper
+worker: ft-alert-bot/bin/scraper
 
