@@ -1,6 +1,6 @@
 build:
 	go build -o bin/main main.go
-
+#test
 # build-server:
 # 	go build -o bin/server data/main.go
 
