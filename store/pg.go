@@ -2,7 +2,7 @@ package store
 
 import (
 	"log"
-	//"os"
+	"os"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -24,11 +24,11 @@ type Store struct {
 }
 
 func NewDB() (*Store, error) {
-	pg, err := gorm.Open("postgres", "host=localhost port=54320 user=snow dbname=snow password=snow123 sslmode=disable")
+	//pg, err := gorm.Open("postgres", "host=localhost port=54320 user=snow dbname=snow password=snow123 sslmode=disable")
 	// if err != nil {
 	// 	return nil, err
 	// }
-	//pg, err := gorm.Open("postgres", os.Getenv("DATABASE_URL"))
+	pg, err := gorm.Open("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatal(err)
 	}
