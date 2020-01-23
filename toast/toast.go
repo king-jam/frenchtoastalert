@@ -7,16 +7,17 @@ import (
 	"github.com/king-jam/ft-alert-bot/store"
 	"log"
 	"net/http"
+	"github.com/julienschmidt/httprouter"
 )
 
 func ToastApi() {
 
-	http.HandleFunc("/toast", ToastHandler)
-	http.ListenAndServe(":8000", nil)
-	log.Println("Serving toast")
+	//http.HandleFunc("/toast", ToastHandler)
+	//http.ListenAndServe(":8000", nil)
+	//log.Println("Serving toast")
 }
 
-func ToastHandler(w http.ResponseWriter, req *http.Request) {
+func ToastHandler(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	if req.Method == "POST" {
 		log.Println("Handing POST")
 		decoder := json.NewDecoder(req.Body)
@@ -53,9 +54,7 @@ func CheckToast(area *models.Area) *models.Location {
 	}
 
 	var locationForecast *models.Location
-	fmt.Println("Santy1")
 	locationForecast, err = ss.Repo.LatestForecast(location)
-	fmt.Println("Santy2")
 	fmt.Println(locationForecast)
 	if err != nil {
 		log.Fatalln(err)
