@@ -1,2 +1,1 @@
-worker: make build-all && bin/scraper
-
+web: go run main.go

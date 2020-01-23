@@ -2,26 +2,28 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
+	"sync"
+	"time"
+
 	"github.com/king-jam/ft-alert-bot/models"
 	"github.com/king-jam/ft-alert-bot/scraper"
 	"github.com/king-jam/ft-alert-bot/store"
 	"github.com/king-jam/ft-alert-bot/toast"
-	"sync"
-	"time"
 )
 
 // SCRAPEINTERVAL will be set with flags
 const SCRAPEINTERVAL time.Duration = 3
 
 func main() {
-	
+
 	dataChan := make(chan models.SnowForecasts, 1)
 	go func() { scraper.ScrapeAndParse(SCRAPEINTERVAL*time.Second, dataChan) }()
 	fmt.Printf("scraping every %d\n", SCRAPEINTERVAL)
 	go func() { store.ListenAndStore(dataChan) }()
 	go func() { toast.ToastApi() }()
-	
-	
+	go func ()  { serving()	} ()
 	//Don't exit main
 	var wg = &sync.WaitGroup{}
 	wg.Add(1)
@@ -135,4 +137,12 @@ func main() {
 	//s.DB.Model(&data).Related(&snowForecasts, "SnowForecasts")
 	//spew.Dump(snowPlace)
 
+}
+
+func serving() {
+	fs := http.FileServer(http.Dir("data/source"))
+	http.Handle("/", fs)
+
+	log.Println("Serving weather data...")
+	http.ListenAndServe(":7000", nil)
 }

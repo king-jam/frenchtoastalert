@@ -1,8 +1,8 @@
 package main
 
 import (
-	"log"
-	"net/http"
+	// "log"
+	// "net/http"
 )
 
 // // MyHandler handles
@@ -24,10 +24,10 @@ import (
 // 	}
 // }
 
-func main() {
-	fs := http.FileServer(http.Dir("data/source"))
-	http.Handle("/", fs)
+// func main() {
+// 	fs := http.FileServer(http.Dir("data/source"))
+// 	http.Handle("/", fs)
 
-	log.Println("Serving weather data...")
-	http.ListenAndServe(":7000", nil)
-}
+// 	log.Println("Serving weather data...")
+// 	http.ListenAndServe(":7000", nil)
+// }
