@@ -7,6 +7,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/king-jam/ft-alert-bot/models"
+	"github.com/sirupsen/logrus"
 )
 
 // DbService wraps the store interface funcs
@@ -25,9 +26,6 @@ type Store struct {
 
 func NewDB() (*Store, error) {
 	//pg, err := gorm.Open("postgres", "host=localhost port=54320 user=snow dbname=snow password=snow123 sslmode=disable")
-	// if err != nil {
-	// 	return nil, err
-	// }
 	pg, err := gorm.Open("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatal(err)
@@ -39,6 +37,7 @@ func NewDB() (*Store, error) {
 	// db.DB.DropTableIfExists(&models.Toast{})
 	// db.DB.DropTableIfExists("snowplace_snowforecast")
 	// db.DB.DropTableIfExists("snowforecast_toast")
+
 	// Make SnowPlace
 	if !db.DB.HasTable(&models.Location{}) {
 		db.DB.CreateTable(&models.Location{}).AddUniqueIndex("index_location", "city", "state", "county")
@@ -56,17 +55,12 @@ func NewDB() (*Store, error) {
 	}
 	db.DB.AutoMigrate(&models.Toast{})
 
-	// init toast table
-	// err = initToast(db.DB)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	return db, nil
 }
 
 func ListenAndStore(dataChan chan models.SnowForecasts) error {
-
+	log := logrus.New()
+	log.Infoln("Starting listen and store")
 	// post snow place into database
 	db, err := NewDB()
 	if err != nil {
@@ -77,6 +71,7 @@ func ListenAndStore(dataChan chan models.SnowForecasts) error {
 
 	for {
 		payload := <-dataChan
+		log.Infoln("Took payload off channel")
 		if payload != nil {
 			go func() {
 				err := ss.saveForecast(payload)
@@ -89,6 +84,7 @@ func ListenAndStore(dataChan chan models.SnowForecasts) error {
 }
 
 func (db *DbService) saveForecast(payload models.SnowForecasts) error {
+	logrus.Infoln("Started save forecast, ranging over payload") 
 
 	//Iterate through the payload
 	for _, snowForecast := range payload {
@@ -97,10 +93,12 @@ func (db *DbService) saveForecast(payload models.SnowForecasts) error {
 			return err
 		}
 		if lastLocation == nil || len(lastLocation.SnowForecasts) == 0 {
+			logrus.Infoln("Initializing forecast table data")
 			if err := db.Repo.Insert(snowForecast); err != nil {
 				return err
 			}
 		} else if lastLocation.SnowForecasts[0].TimeStamp != snowForecast.TimeStamp {
+			logrus.Infoln("Inserting new forecast data")
 			if err := db.Repo.Insert(snowForecast); err != nil {
 				return err
 			}
@@ -131,30 +129,12 @@ func initToast(db *gorm.DB) error {
 	return nil
 }
 
-// func (s *Store) InsertLocation(location *models.Location) error {
-
-// 	sp := &models.Location{}
-// 	s.DB.FirstOrCreate(sp, Location)
-
-// 	if result := s.DB.Create(snowForecast); result.Error != nil {
-// 		return models.ErrDatabaseGeneral(result.Error.Error())
-// 	}
-// 	return nil
-// }
-
 func (s *Store) Insert(snowForecast *models.SnowForecast) error {
 
 	sp := &models.Location{Area: &models.Area{}}
 	s.DB.FirstOrCreate(sp, snowForecast.Location)
-	// s.DB.Last(sp, snowPlace)
-	// sp.SnowForecasts = snowPlace.SnowForecasts
-	// s.DB.FirstOrCreate(sp, testSnowPlace)
-
-	// snowPlace.SnowForecasts[0].SnowPlaceID = sp.ID
-	// &snowPlace.SnowForecasts[0]
 	snowForecast.LocationID = sp.ID
 	snowForecast.Location = sp
-	//snowForecast.Location.Area = sp.Area
 
 	if result := s.DB.Create(snowForecast); result.Error != nil {
 		return models.ErrDatabaseGeneral(result.Error.Error())
@@ -180,7 +160,6 @@ func (s *Store) LatestForecast(query *models.Location) (*models.Location, error)
 // Last gets the last entry into the db table of snowPlaces
 func (s *Store) Last(query *models.Location) (*models.Location, error) {
 	location := new(models.Location)
-	//area := new(models.Area)
 	snowForecasts := make([]models.SnowForecast, 0)
 	if result := s.DB.Last(location, query).Related(&snowForecasts); result.Error != nil {
 		if gorm.IsRecordNotFoundError(result.Error) {

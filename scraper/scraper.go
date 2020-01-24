@@ -5,18 +5,16 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/king-jam/ft-alert-bot/models"
+	//"github.com/sirupsen/logrus"
 )
 
-// placeholder for a check without a db implementation
 var timeStamp string
-
-// SnowPlacesStore is a temp store for data
-//var SnowPlacesStore models.SnowPlaces
 
 func doEvery(d time.Duration, dataChan chan models.SnowForecasts, f func() (*models.Forecast, error)) error {
 	for range time.Tick(d) {
@@ -44,9 +42,10 @@ func ScrapeAndParse(d time.Duration, dataChan chan models.SnowForecasts) error {
 
 // Scraper scrapes
 func Scraper() (*models.Forecast, error) {
-	// Request the HTML page.
 	//resp, err := http.Get("https://www.weather.gov/source/box/winter/snow_prob.xml")
-	resp, err := http.Get("http://localhost:7000/snow_prob.xml")
+	forecastxml := fmt.Sprintf("http://localhost" + ":" + os.Getenv("PORT") + "/snow_prob.xml")
+	//logrus.Infoln(forecastxml)
+	resp, err := http.Get(forecastxml)
 
 	if err != nil {
 		// handle error
@@ -82,13 +81,11 @@ func Parser(forecast *models.Forecast) (models.SnowForecasts, error) {
 
 		Location := &models.Location{
 			Area: &models.Area{
-				City:  lineItems[0],
+				City:   lineItems[0],
 				State:  lineItems[1],
 				County: lineItems[2],
 			},
 		}
-		
-		
 
 		lowEndSnowfall, err := strconv.ParseFloat(lineItems[4], 64)
 		if err != nil {
@@ -135,7 +132,7 @@ func Parser(forecast *models.Forecast) (models.SnowForecasts, error) {
 			return nil, err
 		}
 		snowForecast := &models.SnowForecast{
-			Location:				Location,
+			Location:               Location,
 			TimeStamp:              forecast.TimeStamp,
 			LowEndSnowfall:         lowEndSnowfall,
 			ExpectedSnowfall:       expectedSnowfall,

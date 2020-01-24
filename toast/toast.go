@@ -10,13 +10,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func ToastApi() {
-
-	//http.HandleFunc("/toast", ToastHandler)
-	//http.ListenAndServe(":8000", nil)
-	//log.Println("Serving toast")
-}
-
 func ToastHandler(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	if req.Method == "POST" {
 		log.Println("Handing POST")
@@ -37,7 +30,6 @@ func ToastHandler(w http.ResponseWriter, req *http.Request, ps httprouter.Params
 }
 
 func CheckToast(area *models.Area) *models.Location {
-	// Setup DB connection
 	db, err := store.NewDB()
 	if err != nil {
 		log.Fatalln(err)
@@ -55,14 +47,12 @@ func CheckToast(area *models.Area) *models.Location {
 
 	var locationForecast *models.Location
 	locationForecast, err = ss.Repo.LatestForecast(location)
-	fmt.Println(locationForecast)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	toastLevel := SetLevel(locationForecast)
 	toastAlert := makeFriendlyToastAlert(locationForecast, toastLevel)
-
 	fmt.Println(toastAlert)
 	return locationForecast
 }
@@ -89,9 +79,6 @@ func makeFriendlyToastAlert(toastLocation *models.Location, toastLevel *models.T
 		Toast:             *toastLevel,
 	}
 
-	for forecast := range toastLocation.SnowForecasts {
-		fmt.Println("--------------------", forecast)
-	}
 	return toastAlert
 }
 

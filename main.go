@@ -17,26 +17,23 @@ const SCRAPEINTERVAL time.Duration = 3
 
 func main() {
 	log := logrus.New()
+	log.Infoln("Starting main")
+	
 	dataChan := make(chan models.SnowForecasts, 1)
 	go func() { scraper.ScrapeAndParse(SCRAPEINTERVAL*time.Second, dataChan) }()
 	go func() { store.ListenAndStore(dataChan) }()
-	go func() { toast.ToastApi() }()
-	//go func() { serving() }()
 
 	port := os.Getenv("PORT")
-
 	if port == "" {
 		log.Fatalf("$PORT must be set")
 	}
-	log.Infof("SERVING")
+
 	router := httprouter.New()
-	router.GET("/", dummyForecast)
+	fs := http.FileSystem(http.Dir("data/source"))
+	router.ServeFiles("/*filepath",fs)
 	router.POST("/toast", toast.ToastHandler)
 	log.Fatal(http.ListenAndServe(":"+port, router))
 	log.Infof("SERVING")
 }
 
-func dummyForecast(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
-	fs := http.FileServer(http.Dir("data/source"))
-	fs.ServeHTTP(w, req)
-}
+

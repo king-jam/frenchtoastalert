@@ -59,9 +59,18 @@ type Locations []*Location
 type SnowForecasts []*SnowForecast
 
 type ToastAlert struct {
-	Area         Area
+	Area              Area
 	ToastSnowForecast ToastSnowForecast
-	Toast        Toast
+	Toast             Toast
+}
+
+type SlackAlert struct {
+	City             string
+	State            string
+	ToastLevel       uint
+	ExpectedSnowfall float64
+	LowSnowfall      float64
+	HighSnowfall     float64
 }
 
 type ToastSnowForecast struct {
