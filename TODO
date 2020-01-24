@@ -1,0 +1,6 @@
+1. Toast endpoint should require data, don't respond with last recorded forecast
+2. Implement listener to nws instead of hard-coded file
+3. Update instead of Insert on forecasts (minimize db size)
+4. HTTP templating for slack messages
+5. Setup slack app commands/webhooks
+6. User friendly slack commands (City, State instead of city, state, county to get forecast?)

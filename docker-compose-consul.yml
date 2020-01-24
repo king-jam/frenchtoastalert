@@ -1,0 +1,18 @@
+version: "3"
+
+
+services:
+  consulserver:
+    image: "consul:1.6"
+    container_name: "consulserver"
+    ports:
+      - "8300"
+      - "8301"
+      - "8301/udp"
+      - "8302"
+      - "8302/udp"
+      - "8400"
+      - "8500"
+      - "8600"
+      - "8600/udp"
+    command: "agent -server -ui -node=server-1 -bootstrap-expect=1 -client=0.0.0.0"
