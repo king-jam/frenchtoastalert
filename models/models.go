@@ -18,9 +18,8 @@ type Forecast struct {
 // SnowForecast is a individual snow forcast for a given place, state, county at a time
 type SnowForecast struct {
 	gorm.Model
-	LocationID uint
-	Location   *Location `gorm:"foreignkey:LocationID"`
-	//snowForecast.LocationsnowForecast.LocationArea 					*Area `gorm:"foreignkey:LocationID"`
+	LocationID             uint
+	Location               *Location `gorm:"foreignkey:LocationID"`
 	TimeStamp              string
 	LowEndSnowfall         float64
 	ExpectedSnowfall       float64
@@ -107,6 +106,7 @@ var LevelFive = &Toast{Slices: 5, Status: "Severe", Alert: ""}
 type Repository interface {
 	Insert(snowForecast *SnowForecast) error
 	Last(query *Location) (*Location, error)
+	UpdateRow(snowForecast *SnowForecast) error
 	LatestForecast(query *Location) (*Location, error)
 }
 

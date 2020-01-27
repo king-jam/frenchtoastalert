@@ -1,6 +1,7 @@
 package store
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -25,8 +26,14 @@ type Store struct {
 }
 
 func NewDB() (*Store, error) {
-	//pg, err := gorm.Open("postgres", "host=localhost port=54320 user=snow dbname=snow password=snow123 sslmode=disable")
-	pg, err := gorm.Open("postgres", os.Getenv("DATABASE_URL"))
+	var err error
+	var pg *gorm.DB
+
+	if os.Getenv("ENV") == "TEST" {
+		pg, err = gorm.Open("postgres", "host=localhost port=54320 user=snow dbname=snow password=snow123 sslmode=disable")
+	} else {
+		pg, err = gorm.Open("postgres", os.Getenv("DATABASE_URL"))
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -84,7 +91,7 @@ func ListenAndStore(dataChan chan models.SnowForecasts) error {
 }
 
 func (db *DbService) saveForecast(payload models.SnowForecasts) error {
-	logrus.Infoln("Started save forecast, ranging over payload") 
+	logrus.Infoln("Started save forecast, ranging over payload")
 
 	//Iterate through the payload
 	for _, snowForecast := range payload {
@@ -98,8 +105,8 @@ func (db *DbService) saveForecast(payload models.SnowForecasts) error {
 				return err
 			}
 		} else if lastLocation.SnowForecasts[0].TimeStamp != snowForecast.TimeStamp {
-			logrus.Infoln("Inserting new forecast data")
-			if err := db.Repo.Insert(snowForecast); err != nil {
+			snowForecast.LocationID = lastLocation.SnowForecasts[0].LocationID
+			if err := db.Repo.UpdateRow(snowForecast); err != nil {
 				return err
 			}
 		}
@@ -142,12 +149,39 @@ func (s *Store) Insert(snowForecast *models.SnowForecast) error {
 	return nil
 }
 
+func (s *Store) UpdateRow(snowForecast *models.SnowForecast) error {
+	updateTemplate := `UPDATE snow_forecasts SET 
+	"time_stamp" = '%s',
+	"low_end_snowfall" = %.1f, 
+	"expected_snowfall" = %.1f,
+	"high_end_snowfall" = %.1f, 
+	"chance_more_than_zero" = %.1f,
+	"chance_more_than_one" = %.1f,
+	"chance_more_than_two" = %.1f,
+	"chance_more_than_four" = %.1f,
+	"chance_more_than_six" = %.1f,
+	"chance_more_than_eight" = %.1f,
+	"chance_more_than_twelve" = %.1f,
+	"chance_more_than_eighteen" = %.1f
+	WHERE location_id=%d`
+
+	//FIXME: Any better way to do this?
+	updateQuery := fmt.Sprintf(updateTemplate, snowForecast.TimeStamp, snowForecast.LowEndSnowfall, snowForecast.ExpectedSnowfall, snowForecast.HighEndSnowfall,
+		snowForecast.ChanceMoreThanZero, snowForecast.ChanceMoreThanOne, snowForecast.ChanceMoreThanTwo, snowForecast.ChanceMoreThanFour, snowForecast.ChanceMoreThanSix,
+		snowForecast.ChanceMoreThanEight, snowForecast.ChanceMoreThanTwelve, snowForecast.ChanceMoreThanEighteen, snowForecast.LocationID)
+	if result := s.DB.Debug().Exec(updateQuery); result.Error != nil {
+
+		//s.DB.Debug().Select(sf, snowForecast).Where("snowForecast.location_id =="+string(snowForecast.ID)).Update("time_stamp", snowForecast.TimeStamp); result.Error != nil {
+		return models.ErrDatabaseGeneral(result.Error.Error())
+	}
+	return nil
+}
+
 func (s *Store) LatestForecast(query *models.Location) (*models.Location, error) {
 	location := new(models.Location)
 	toastAlert := new(models.ToastAlert)
 	snowForecasts := make([]models.SnowForecast, 0)
 	if result := s.DB.Last(location, query).Related(&snowForecasts).Select(location, toastAlert); result.Error != nil {
-		//if result := s.DB.Last(location, query).Related(&snowForecasts); result.Error != nil {
 		if gorm.IsRecordNotFoundError(result.Error) {
 			return nil, models.ErrRecordNotFound
 		}

@@ -3,15 +3,15 @@ package scraper
 import (
 	"encoding/xml"
 	"fmt"
+	"os"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/king-jam/ft-alert-bot/models"
-	//"github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 var timeStamp string
@@ -42,9 +42,11 @@ func ScrapeAndParse(d time.Duration, dataChan chan models.SnowForecasts) error {
 
 // Scraper scrapes
 func Scraper() (*models.Forecast, error) {
+	
+	
 	//resp, err := http.Get("https://www.weather.gov/source/box/winter/snow_prob.xml")
+	
 	forecastxml := fmt.Sprintf("http://localhost" + ":" + os.Getenv("PORT") + "/snow_prob.xml")
-	//logrus.Infoln(forecastxml)
 	resp, err := http.Get(forecastxml)
 
 	if err != nil {
@@ -55,6 +57,7 @@ func Scraper() (*models.Forecast, error) {
 		return nil, fmt.Errorf("status code error: %d %s", resp.StatusCode, resp.Status)
 	}
 	defer resp.Body.Close()
+	logrus.Infoln("Beginning to read NWS data")
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -62,6 +65,8 @@ func Scraper() (*models.Forecast, error) {
 
 	var forecast models.Forecast
 	xml.Unmarshal(body, &forecast)
+	logrus.Infoln("Unmarshaled")
+	logrus.Infoln(&forecast)
 	return &forecast, nil
 }
 

@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"github.com/julienschmidt/httprouter"
+	"github.com/sirupsen/logrus"
 )
 
 func ToastHandler(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
@@ -16,12 +17,14 @@ func ToastHandler(w http.ResponseWriter, req *http.Request, ps httprouter.Params
 		decoder := json.NewDecoder(req.Body)
 		var areaData models.Area
 		decoder.Decode(&areaData)
+		//If decoded isn't a valid areaData, return 400 error, 
+		// else check toastLevel
 		toastLevel := CheckToast(&areaData)
 		jsonResp, err := json.Marshal(toastLevel)
 		if err != nil {
 			log.Fatalln(err)
 		}
-
+		
 		fmt.Fprintf(w, string(jsonResp))
 
 	} else {
@@ -47,8 +50,11 @@ func CheckToast(area *models.Area) *models.Location {
 
 	var locationForecast *models.Location
 	locationForecast, err = ss.Repo.LatestForecast(location)
-	if err != nil {
-		log.Fatalln(err)
+	
+	if err != nil && err != models.ErrRecordNotFound {
+		logrus.Fatal(err)
+	} else if err == models.ErrRecordNotFound {
+		//return 404
 	}
 
 	toastLevel := SetLevel(locationForecast)
